@@ -6,9 +6,10 @@ import java.lang.Math;
 import java.util.Date;
 
 public class Mem_bench {
-    static int mem_size = 128*1024*1024;
-    static long[] array = new long[mem_size];
-    static int[] pointers = new int[mem_size];
+    static final int mem_size = 128*1024*1024;
+    static final int num_iterations = 100 * 1024 * 1024;
+    static final long[] array = new long[mem_size];
+    static final int[] pointers = new int[mem_size];
 
 
     public static void main(String [ ] args){
@@ -18,18 +19,16 @@ public class Mem_bench {
             pointers[i] = (int) (Math.random() * mem_size);
             pointers[i] = i;
         }
-        Date date1 = new Date();
-        Long time1 = (long) (((((date1.getHours() * 60) + date1.getMinutes())* 60 ) + date1.getSeconds()) * 1000);
+        long time1 = System.nanoTime();;
         long x = bench();
-        Date date2 = new Date();
-        Long time2 = (long) (((((date2.getHours() * 60) + date2.getMinutes())* 60 ) + date2.getSeconds()) * 1000);
-        System.out.println("Result is: " + x + " time spent is: " + (time2-time1));
+        long time2 = System.nanoTime();
+        System.out.printf("Result is: %d time spent is: %,d ns  freq: %,.2f /sec\n",x, time2-time1, num_iterations/((double)time2-time1) * 1000000000.0);
     }
 
     static long bench () {
         long sum = 0;
         int pointer = 0;
-        for (long i = 0; i < 1000*1024*1024; i++) {
+        for (long i = 0; i < num_iterations; i++) {
             pointer = pointers[pointer];
             sum = sum + array[pointer] ;
         }
