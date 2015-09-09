@@ -64,7 +64,7 @@ public class QWC implements Test {
     }
 
     @Override
-    public void prepare(LatencyEstimation lat, Map<String, String> conf) {
+    public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
         _counts = new ArrayList<HashMap<String, Integer>>();
         _doneSignal = new CountDownLatch(_numThreads);
         _startSignal = new CountDownLatch(1);

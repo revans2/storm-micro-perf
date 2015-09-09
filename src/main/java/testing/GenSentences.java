@@ -9,7 +9,7 @@ public class GenSentences {
         private LatencyEstimation _lat;
 
         @Override
-        public void prepare(LatencyEstimation lat, Map<String, String> conf) {
+        public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
             _gen = new GenSentences();
             _lat = lat;
         }

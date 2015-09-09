@@ -11,7 +11,7 @@ public class SeqMemory implements Test {
     }
 
     @Override
-    public void prepare(LatencyEstimation lat, Map<String, String> conf) {
+    public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
         _lat = lat;
     }
 

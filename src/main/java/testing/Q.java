@@ -44,8 +44,27 @@ public interface Q {
         return defaultValue;
     }
 
+    static int roundUpToNextPowerOfTwo(int x) {
+        x--;
+        x |= x >> 1;  // handle  2 bit numbers
+        x |= x >> 2;  // handle  4 bit numbers
+        x |= x >> 4;  // handle  8 bit numbers
+        x |= x >> 8;  // handle 16 bit numbers
+        x |= x >> 16; // handle 32 bit numbers
+        x++;
+        return x;
+    }
+
     public static Q make(String name, Map<String, String> conf) {
+        return Q.make(name, conf, null);
+    }
+
+    public static Q make(String name, Map<String, String> conf, Integer sizeOverride) {
         int size = getInt(conf, "Q.size", 1024);
+        if (sizeOverride != null) {
+            size = sizeOverride;
+        }
+        size = roundUpToNextPowerOfTwo(size);
         String type = conf.get("Q.type");
         if ("storm".equalsIgnoreCase(type)) {
             return StormQueue.make(name, size, conf);

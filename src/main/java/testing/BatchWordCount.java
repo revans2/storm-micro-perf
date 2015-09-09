@@ -24,7 +24,7 @@ public class BatchWordCount implements Test {
     }
 
     @Override
-    public void prepare(final LatencyEstimation lat, Map<String, String> conf) {
+    public void prepare(final LatencyEstimation lat, Map<String, String> conf, int iterations) {
         _counts = new ArrayList<HashMap<String, Integer>>();
         _startSignal = new CountDownLatch(1);
         _doneSignal = new CountDownLatch(_numThreads);

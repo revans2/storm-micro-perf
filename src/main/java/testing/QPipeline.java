@@ -25,7 +25,7 @@ public class QPipeline implements Test {
     }
 
     @Override
-    public void prepare(LatencyEstimation lat, Map<String, String> conf) {
+    public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
         _doneSignal = new CountDownLatch(_depth);
         _startSignal = new CountDownLatch(1);
         _lat = lat;

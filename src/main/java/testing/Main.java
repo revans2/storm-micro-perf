@@ -1,5 +1,8 @@
 package testing;
 
+import java.lang.management.CompilationMXBean;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +26,7 @@ public class Main {
         private LatencyEstimation _lat;
 
         @Override
-        public void prepare(LatencyEstimation lat, Map<String, String> conf) {
+        public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
             _lat = lat;
         }
 
@@ -57,6 +60,7 @@ public class Main {
             tests.put("Q_PIPE_"+t, new QPipeline(threads));
             tests.put("Q_WC_"+t, new QWC(threads));
             tests.put("Q_RR_"+t, new QRoundRobin(threads));
+            tests.put("PSUDO_Q_RR_"+t, new PsudoQRoundRobin(threads));
         }
         tests.put("R_MEM_01k", new RandomMemory(1024));
         tests.put("R_MEM_01m", new RandomMemory(1024 * 1024));
@@ -128,9 +132,17 @@ public class Main {
         ArrayList<String> testNames = new ArrayList<String>(testsToRun);
         Collections.sort(testNames);
 
+        List<GarbageCollectorMXBean> gcs = ManagementFactory.getGarbageCollectorMXBeans(); 
+        CompilationMXBean comp = ManagementFactory.getCompilationMXBean();
+        final boolean compSupported = comp != null && comp.isCompilationTimeMonitoringSupported();
+
+        System.out.println("COMMAND LINE: "+ManagementFactory.getRuntimeMXBean().getInputArguments());
         System.out.println("Conf: "+conf);
         System.out.println();
-        System.out.printf("%15s\t%5s\t%15s\t%17s\t%17s","Test Name", "Num", "Iterations", "Time ns", "Throughput");
+        System.out.printf("%15s\t%5s\t%15s\t%17s\t%17s\t%4s\t%5s","Test Name", "Num", "Iterations", "Time ns", "Throughput", "GC", "GC ms");
+        if (compSupported) {
+            System.out.printf("\t%6s", "JIT ms");
+        }
         if (trackLatency) {
             System.out.printf("\t%15s\t%15s\t%15s\t%15s\t%15s", "min latency", "latency 50th", "latency 90th", "latency 99th", "max latency");
         }
@@ -139,12 +151,36 @@ public class Main {
             for (String testName: testNames) {
                 Test test = tests.get(testName);
                 LatencyEstimation latency = trackLatency? new LatencyEstimationImpl(pct, iterations) : new NoopLatencyEstimation();
-                test.prepare(latency, conf);
+                test.prepare(latency, conf, iterations);
+                System.gc();
+                long startGcCount = 0;
+                long startGcTime = 0;
+                for (GarbageCollectorMXBean gc: gcs) {
+                    startGcCount += gc.getCollectionCount();
+                    startGcTime += gc.getCollectionTime();
+                }
+                long compStart = 0;
+                if (compSupported) {
+                    compStart = comp.getTotalCompilationTime();
+                }
                 long start = System.nanoTime();
                 test.runTest(iterations);
                 long end = System.nanoTime();
+                long endGcCount = 0;
+                long endGcTime = 0;
+                for (GarbageCollectorMXBean gc: gcs) {
+                    endGcCount += gc.getCollectionCount();
+                    endGcTime += gc.getCollectionTime();
+                }
+                long compEnd = 0;
+                if (compSupported) {
+                    compEnd = comp.getTotalCompilationTime();
+                }
                 test.cleanup();
-                System.out.printf("%15s\t%,5d\t%,15d\t%,17d\t%,17.0f",testName,i+1, iterations, end - start,((double)iterations)/(end - start) * 1000000000.0);
+                System.out.printf("%15s\t%,5d\t%,15d\t%,17d\t%,17.0f\t%,4d\t%,5d",testName,i+1, iterations, end - start,((double)iterations)/(end - start) * 1000000000.0,endGcCount-startGcCount, endGcTime-startGcTime);
+                if (compSupported) {
+                    System.out.printf("\t%,6d", compEnd-compStart);
+                }
                 if (trackLatency) {
                     System.out.printf("\t%,15.0f\t%,15.0f\t%,15.0f\t%,15.0f\t%,15.0f", latency.getMin(), latency.get50th(), latency.get90th(), latency.get99th(), latency.getMax());
                 }
