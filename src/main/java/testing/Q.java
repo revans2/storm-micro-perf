@@ -72,9 +72,11 @@ public interface Q {
             return JavaArrayBlockingQueue.make(name, size, conf);
         } else if ("java-linked".equalsIgnoreCase(type)) {
             return JavaLinkedBlockingQueue.make(name, size, conf);
+        } else if ("disruptor-latest".equalsIgnoreCase(type)) {
+            return LatestDisruptorQ.make(name, size, conf);
         } else if (type == null || "disruptor".equalsIgnoreCase(type)) {
             return DisruptorQueue.make(name, size, conf);
         }
-        throw new IllegalArgumentException(type+" is not a supported Q type. [\"storm\", \"disruptor\", \"java-array\", \"java-linked\"]");
+        throw new IllegalArgumentException(type+" is not a supported Q type. [\"storm\", \"disruptor\", \"disruptor-latest\", \"java-array\", \"java-linked\"]");
     }
 }
