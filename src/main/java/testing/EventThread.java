@@ -14,18 +14,20 @@ public abstract class EventThread<T extends TestData> extends Thread implements 
     private CountDownLatch _startSignal;
     private CountDownLatch _doneSignal;
     private int _currentSize = 0;
-    private PctEstimation _batchSize;
-    private PctEstimation _qSize;
-    private PctEstimation _pop;
-    private static final int MAX_SAMPLES = 100000;
+    private int _numDoneMessages;
+    //private PctEstimation _batchSize;
+    //private PctEstimation _qSize;
+    //private PctEstimation _pop;
+    //private static final int MAX_SAMPLES = 100000;
 
-    public EventThread(CountDownLatch startSignal, CountDownLatch doneSignal, Q input) {
+    public EventThread(CountDownLatch startSignal, CountDownLatch doneSignal, Q input, int numDoneMessages) {
+        _numDoneMessages = numDoneMessages;
         _input = input;
         _startSignal = startSignal;
         _doneSignal = doneSignal;
-        _batchSize = new PctEstimation(1.0, MAX_SAMPLES);
-        _qSize = new PctEstimation(1.0, MAX_SAMPLES);
-        _pop = new PctEstimation(1.0, MAX_SAMPLES);
+        //_batchSize = new PctEstimation(1.0, MAX_SAMPLES);
+        //_qSize = new PctEstimation(1.0, MAX_SAMPLES);
+        //_pop = new PctEstimation(1.0, MAX_SAMPLES);
     }
 
     @Override
@@ -50,7 +52,10 @@ public abstract class EventThread<T extends TestData> extends Thread implements 
     public void onEvent(Object event, long sequence, boolean endOfBatch) throws Exception {
         T data = (T)event;
         if (data.allDone) {
-            _isDone = true;
+            _numDoneMessages--;
+            if (_numDoneMessages <= 0) {
+              _isDone = true;
+            }
         }
         _currentSize++;
 

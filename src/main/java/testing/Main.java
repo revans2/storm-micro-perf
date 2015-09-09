@@ -59,10 +59,14 @@ public class Main {
             tests.put("BATCH_WC_"+t, new BatchWordCount(threads));
             tests.put("Q_PIPE_"+t, new QPipeline(threads));
             tests.put("Q_WC_"+t, new QWC(threads));
-            tests.put("Q_RR_B_0001_"+t, new QRoundRobin(threads,1));
-            tests.put("Q_RR_B_0010_"+t, new QRoundRobin(threads,10));
-            tests.put("Q_RR_B_0100_"+t, new QRoundRobin(threads,100));
-            tests.put("Q_RR_B_1000_"+t, new QRoundRobin(threads,1000));
+            tests.put("Q_RR_B_0001_"+t, new QRoundRobin(1, threads,1));
+            tests.put("Q_RR_B_0010_"+t, new QRoundRobin(1, threads,10));
+            tests.put("Q_RR_B_0100_"+t, new QRoundRobin(1, threads,100));
+            tests.put("Q_RR_B_1000_"+t, new QRoundRobin(1, threads,1000));
+            tests.put("Q_RR_X_B_0001_"+t, new QRoundRobin(threads, threads,1));
+            tests.put("Q_RR_X_B_0010_"+t, new QRoundRobin(threads, threads,10));
+            tests.put("Q_RR_X_B_0100_"+t, new QRoundRobin(threads, threads,100));
+            tests.put("Q_RR_X_B_1000_"+t, new QRoundRobin(threads, threads,1000));
             tests.put("PSUDO_Q_RR_"+t, new PsudoQRoundRobin(threads));
         }
         tests.put("R_MEM_01k", new RandomMemory(1024));
@@ -142,7 +146,7 @@ public class Main {
         System.out.println("COMMAND LINE: "+ManagementFactory.getRuntimeMXBean().getInputArguments());
         System.out.println("Conf: "+conf);
         System.out.println();
-        System.out.printf("%15s\t%5s\t%15s\t%17s\t%17s\t%4s\t%5s","Test Name", "Num", "Iterations", "Time ns", "Throughput", "GC", "GC ms");
+        System.out.printf("%20s\t%5s\t%15s\t%17s\t%17s\t%4s\t%5s","Test Name", "Num", "Iterations", "Time ns", "Throughput", "GC", "GC ms");
         if (compSupported) {
             System.out.printf("\t%6s", "JIT ms");
         }
@@ -180,7 +184,7 @@ public class Main {
                     compEnd = comp.getTotalCompilationTime();
                 }
                 test.cleanup();
-                System.out.printf("%15s\t%,5d\t%,15d\t%,17d\t%,17.0f\t%,4d\t%,5d",testName,i+1, iterations, end - start,((double)iterations)/(end - start) * 1000000000.0,endGcCount-startGcCount, endGcTime-startGcTime);
+                System.out.printf("%20s\t%,5d\t%,15d\t%,17d\t%,17.0f\t%,4d\t%,5d",testName,i+1, iterations, end - start,((double)iterations)/(end - start) * 1000000000.0,endGcCount-startGcCount, endGcTime-startGcTime);
                 if (compSupported) {
                     System.out.printf("\t%,6d", compEnd-compStart);
                 }

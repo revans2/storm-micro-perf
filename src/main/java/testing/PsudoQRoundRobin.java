@@ -36,7 +36,7 @@ public class PsudoQRoundRobin implements Test {
         for (int i = 0; i < _numThreads; i++) {
             Q q = Q.make("Q_"+i, conf, iterations);
             _q.add(q);
-            Consumer c = new Consumer(_startSignal, _doneSignal, q, _lat);
+            Consumer c = new Consumer(_startSignal, _doneSignal, q, _lat, 1);
             _threads.add(c);
             c.start();
         }

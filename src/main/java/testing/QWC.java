@@ -41,7 +41,7 @@ public class QWC implements Test {
         private LatencyEstimation _lat;
 
         public Counter(CountDownLatch startSignal, CountDownLatch doneSignal, Q input, HashMap<String, Integer> subCounts, LatencyEstimation lat) {
-            super(startSignal, doneSignal, input);
+            super(startSignal, doneSignal, input, 1);
             _subCounts = subCounts;
             _lat = lat;
         }

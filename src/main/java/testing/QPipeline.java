@@ -40,7 +40,7 @@ public class QPipeline implements Test {
                 _q.add(current);
             }
             if (i == _depth) {
-                Consumer c = new Consumer(_startSignal, _doneSignal, previous, _lat);
+                Consumer c = new Consumer(_startSignal, _doneSignal, previous, _lat, 1);
                 _threads.add(c);
                 c.start();
             } else if (previous != null) {

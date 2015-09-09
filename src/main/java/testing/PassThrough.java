@@ -8,7 +8,7 @@ public class PassThrough extends EventThread<TestData> {
     private Q _output;
 
     public PassThrough(CountDownLatch startSignal, CountDownLatch doneSignal, Q input, Q output) {
-        super(startSignal, doneSignal, input);
+        super(startSignal, doneSignal, input, 1);
         _output = output;
     }
 

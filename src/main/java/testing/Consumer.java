@@ -5,8 +5,8 @@ import java.util.concurrent.CountDownLatch;
 public class Consumer extends EventThread<TestData> {
     private LatencyEstimation _lat;
 
-    public Consumer(CountDownLatch startSignal, CountDownLatch doneSignal, Q input, LatencyEstimation lat) {
-        super(startSignal, doneSignal, input);
+    public Consumer(CountDownLatch startSignal, CountDownLatch doneSignal, Q input, LatencyEstimation lat, int numDoneMessages) {
+        super(startSignal, doneSignal, input, numDoneMessages);
         _lat = lat;
     }
 
