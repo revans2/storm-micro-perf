@@ -59,7 +59,10 @@ public class Main {
             tests.put("BATCH_WC_"+t, new BatchWordCount(threads));
             tests.put("Q_PIPE_"+t, new QPipeline(threads));
             tests.put("Q_WC_"+t, new QWC(threads));
-            tests.put("Q_RR_"+t, new QRoundRobin(threads));
+            tests.put("Q_RR_B_0001_"+t, new QRoundRobin(threads,1));
+            tests.put("Q_RR_B_0010_"+t, new QRoundRobin(threads,10));
+            tests.put("Q_RR_B_0100_"+t, new QRoundRobin(threads,100));
+            tests.put("Q_RR_B_1000_"+t, new QRoundRobin(threads,1000));
             tests.put("PSUDO_Q_RR_"+t, new PsudoQRoundRobin(threads));
         }
         tests.put("R_MEM_01k", new RandomMemory(1024));

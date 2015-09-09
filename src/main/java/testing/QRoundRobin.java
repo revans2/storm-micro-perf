@@ -14,9 +14,11 @@ public class QRoundRobin implements Test {
     private ArrayList<Q> _q;
     private LatencyEstimation _lat;
     private int _numThreads;
+    private int _batchInsert;
 
-    public QRoundRobin(int threads) {
+    public QRoundRobin(int threads, int batchInsert) {
         _numThreads = threads;
+        _batchInsert = batchInsert;
     }
 
     @Override
@@ -43,10 +45,15 @@ public class QRoundRobin implements Test {
 
     @Override
     public void runTest(int iterations) throws Exception {
+        final int batchInsert = _batchInsert;
         _startSignal.countDown();
-        for (int i = 0; i < iterations; i++) {
-            long start = _lat.getStart(i);
-            _q.get(i % _q.size()).publish(new TestData(i, start, false));
+        int iteration = 0;
+        for (int i = 0; i < (iterations/batchInsert) + 1; i++) {
+            for (int j = 0; j < batchInsert; j++) {
+                long start = _lat.getStart(iteration);
+                _q.get(i % _q.size()).publish(new TestData(iteration, start, false));
+                iteration++;
+            }
         }
 
         for (Q q: _q) {
