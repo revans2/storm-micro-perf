@@ -58,7 +58,8 @@ public class Main {
             String t = String.format("%02d", threads);
             tests.put("BATCH_WC_"+t, new BatchWordCount(threads));
             tests.put("Q_PIPE_"+t, new QPipeline(threads));
-            tests.put("Q_WC_"+t, new QWC(threads));
+            tests.put("Q_WC_"+t, new QWC(1, threads));
+            tests.put("Q_WC_X_"+t, new QWC(threads, threads));
             tests.put("Q_RR_B_0001_"+t, new QRoundRobin(1, threads,1));
             tests.put("Q_RR_B_0010_"+t, new QRoundRobin(1, threads,10));
             tests.put("Q_RR_B_0100_"+t, new QRoundRobin(1, threads,100));
