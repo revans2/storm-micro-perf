@@ -73,5 +73,9 @@ public class QPipeline implements Test {
                 t.join();
             }
         }
+
+        for (Q q: _q) {
+            q.close();
+        }
     }
 }

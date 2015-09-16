@@ -81,4 +81,9 @@ public class JavaBlockingQueue implements Q {
             throw InsufficientCapacityException.INSTANCE;
         }
     }
+
+    @Override
+    public void close() {
+        //Empty
+    }
 }

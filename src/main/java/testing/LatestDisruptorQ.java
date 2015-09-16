@@ -187,4 +187,9 @@ public class LatestDisruptorQ implements Q {
             return new MutableObject();
         }        
     }
+
+    @Override
+    public void close() {
+        //NOOP
+    }
 }

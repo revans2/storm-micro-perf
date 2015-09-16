@@ -31,6 +31,7 @@ public interface Q {
     public void consumeBatchWhenAvailable(EventHandler<Object> handler);
     public void publish(Object obj);
     public void tryPublish(Object obj) throws InsufficientCapacityException;
+    public void close();
 
     public static int getInt(Map<String, String> conf, String name, int defaultValue) {
         String tmp = conf.get(name);
@@ -66,17 +67,28 @@ public interface Q {
         }
         size = roundUpToNextPowerOfTwo(size);
         String type = conf.get("Q.type");
+        int batchSize = getInt(conf, "Q.batch-size", 1);
+        batchSize = Math.min(batchSize, size);
+
+        Q ret = null;
         if ("storm".equalsIgnoreCase(type)) {
-            return StormQueue.make(name, size, conf);
+            ret = StormQueue.make(name, size, conf);
         } else if ("java-array".equalsIgnoreCase(type)) {
-            return JavaArrayBlockingQueue.make(name, size, conf);
+            ret = JavaArrayBlockingQueue.make(name, size, conf);
         } else if ("java-linked".equalsIgnoreCase(type)) {
-            return JavaLinkedBlockingQueue.make(name, size, conf);
+            ret = JavaLinkedBlockingQueue.make(name, size, conf);
         } else if ("disruptor-latest".equalsIgnoreCase(type)) {
-            return LatestDisruptorQ.make(name, size, conf);
+            ret = LatestDisruptorQ.make(name, size, conf);
         } else if (type == null || "disruptor".equalsIgnoreCase(type)) {
-            return DisruptorQueue.make(name, size, conf);
+            ret = DisruptorQueue.make(name, size, conf);
+        } else {
+            throw new IllegalArgumentException(type+" is not a supported Q type. [\"storm\", \"disruptor\", \"disruptor-latest\", \"java-array\", \"java-linked\"]");
         }
-        throw new IllegalArgumentException(type+" is not a supported Q type. [\"storm\", \"disruptor\", \"disruptor-latest\", \"java-array\", \"java-linked\"]");
+
+        if (batchSize > 1) {
+            ret = new InputBatchingQ(ret, batchSize);
+        }
+
+        return ret;
     }
 }

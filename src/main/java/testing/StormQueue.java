@@ -74,4 +74,9 @@ public class StormQueue implements Q {
     public void tryPublish(Object obj) throws InsufficientCapacityException {
         _q.tryPublish(obj);
     }
+
+    @Override
+    public void close() {
+        //NOOP
+    }
 }

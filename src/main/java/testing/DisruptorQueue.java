@@ -171,4 +171,9 @@ public class DisruptorQueue implements Q {
             return new MutableObject();
         }        
     }
+
+    @Override
+    public void close() {
+        //NOOP
+    }
 }
