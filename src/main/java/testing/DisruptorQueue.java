@@ -18,6 +18,7 @@
 package testing;
 
 import java.util.Map;
+import java.util.Collection;
 
 import com.lmax.disruptor.AlertException;
 import com.lmax.disruptor.ClaimStrategy;
@@ -30,6 +31,7 @@ import com.lmax.disruptor.SequenceBarrier;
 import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.MultiThreadedClaimStrategy;
+import com.lmax.disruptor.BatchDescriptor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -131,7 +133,21 @@ public class DisruptorQueue implements Q {
         }
         _consumer.set(cursor);
     }
-    
+   
+    @Override
+    public void publish(Collection<Object> objs) {
+        BatchDescriptor batchDescriptor = _buffer.newBatchDescriptor(objs.size());
+        _buffer.next(batchDescriptor);
+        long at = batchDescriptor.getStart();
+        for (Object obj: objs) {
+            MutableObject m = _buffer.get(at);
+            m.setObject(obj);
+            at++;
+        }
+        _buffer.publish(batchDescriptor);
+    }
+ 
+    @Override
     public void publish(Object obj) {
         try {
             publish(obj, true);

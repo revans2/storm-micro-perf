@@ -18,6 +18,7 @@
 package testing;
 
 import java.util.Map;
+import java.util.Collection;
 
 import storm.perf.com.lmax.disruptor.AlertException;
 import storm.perf.com.lmax.disruptor.EventFactory;
@@ -143,7 +144,23 @@ public class LatestDisruptorQ implements Q {
         }
         _consumer.set(cursor);
     }
-    
+
+    @Override
+    public void publish(Collection<Object> objs) {
+        int size = objs.size();
+        if (size > 0) {
+            long end = _buffer.next(size);
+            long begin = end - (size - 1);
+            long at = begin;
+            for (Object obj: objs) {
+                MutableObject m = _buffer.get(at);
+                m.setObject(obj);
+                at++;
+            }
+            _buffer.publish(begin, end);
+        }
+    }
+
     public void publish(Object obj) {
         try {
             publish(obj, true);

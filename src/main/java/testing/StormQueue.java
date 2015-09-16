@@ -18,6 +18,7 @@
 package testing;
 
 import java.util.Map;
+import java.util.Collection;
 
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.InsufficientCapacityException;
@@ -63,6 +64,13 @@ public class StormQueue implements Q {
     @Override
     public void consumeBatchWhenAvailable(EventHandler<Object> handler) {
         _q.consumeBatchWhenAvailable(handler);
+    }
+
+    @Override
+    public void publish(Collection<Object> objs) {
+        for (Object obj: objs) {
+            publish(obj);
+        }
     }
     
     @Override

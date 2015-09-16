@@ -18,6 +18,7 @@
 package testing;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -75,9 +76,7 @@ public class InputBatchingQ implements Q {
 
     //Should only be called with a lock held on batch
     public void flushBatch(ArrayList<Object> batch) {
-        for (Object o: batch) {
-            _q.publish(o);
-        }
+        _q.publish(batch);
         batch.clear();
     }
 
@@ -96,7 +95,24 @@ public class InputBatchingQ implements Q {
             }
         }
     }
-    
+   
+    @Override
+    public void publish(Collection<Object> objs) {
+        Long id = getId();
+        ArrayList<Object> batch = _batches.get(id);
+        if (batch == null) {
+            batch = new ArrayList<Object>();
+            _batches.put(id, batch);
+        }
+        synchronized (batch) {
+            batch.addAll(objs);
+            if (batch.size() >= _batchSize) {
+                flushBatch(batch);
+            }
+        }
+    }
+ 
+ 
     @Override
     public void tryPublish(Object obj) throws InsufficientCapacityException {
         //TODO figure this out, right now this allows for out of order delivery

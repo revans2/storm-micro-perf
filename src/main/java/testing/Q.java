@@ -21,6 +21,7 @@ import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.InsufficientCapacityException;
 
 import java.util.Map;
+import java.util.Collection;
 
 /**
  * Provides an interface for different Queue implementations
@@ -30,6 +31,7 @@ public interface Q {
     public void consumeBatch(EventHandler<Object> handler);
     public void consumeBatchWhenAvailable(EventHandler<Object> handler);
     public void publish(Object obj);
+    public void publish(Collection<Object> obj);
     public void tryPublish(Object obj) throws InsufficientCapacityException;
     public void close();
 

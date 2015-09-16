@@ -18,11 +18,13 @@
 package testing;
 
 import java.util.Map;
+import java.util.Collection;
 
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.InsufficientCapacityException;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.Collection;
 
 public class JavaBlockingQueue implements Q {
     private BlockingQueue _q;
@@ -63,6 +65,13 @@ public class JavaBlockingQueue implements Q {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    @Override
+    public void publish(Collection<Object> objs) {
+        for (Object obj: objs) {
+            publish(obj);
         }
     }
     
