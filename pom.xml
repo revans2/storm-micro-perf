@@ -6,6 +6,10 @@
     <packaging>jar</packaging>
     <version>1.0.0</version>
 
+    <properties>
+        <sigar.lib>${basedir}/hyperic-sigar-1.6.4/sigar-bin/lib/</sigar.lib>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>commons-cli</groupId>
@@ -21,6 +25,13 @@
             <groupId>testing</groupId>
             <artifactId>shaded-disruptor</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hyperic.sigar</groupId>
+            <artifactId>sigar</artifactId>
+            <version>1.6.4</version>
+            <scope>system</scope>
+            <systemPath>${sigar.lib}/sigar.jar</systemPath>
         </dependency>
     </dependencies>
 

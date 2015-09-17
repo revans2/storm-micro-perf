@@ -1,5 +1,8 @@
 package testing;
 
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.ProcCpu;
+
 import java.lang.management.CompilationMXBean;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -140,6 +143,9 @@ public class Main {
         ArrayList<String> testNames = new ArrayList<String>(testsToRun);
         Collections.sort(testNames);
 
+        Sigar sigar = new Sigar();
+        long pid = sigar.getPid();
+
         List<GarbageCollectorMXBean> gcs = ManagementFactory.getGarbageCollectorMXBeans(); 
         CompilationMXBean comp = ManagementFactory.getCompilationMXBean();
         final boolean compSupported = comp != null && comp.isCompilationTimeMonitoringSupported();
@@ -147,7 +153,7 @@ public class Main {
         System.out.println("COMMAND LINE: "+ManagementFactory.getRuntimeMXBean().getInputArguments());
         System.out.println("Conf: "+conf);
         System.out.println();
-        System.out.printf("%20s\t%5s\t%15s\t%17s\t%17s\t%4s\t%5s","Test Name", "Num", "Iterations", "Time ns", "Throughput", "GC", "GC ms");
+        System.out.printf("%20s\t%5s\t%15s\t%17s\t%17s\t%4s\t%5s\t%8s\t%8s","Test Name", "Num", "Iterations", "Time ns", "Throughput", "GC", "GC ms", "USR ms", "SYS ms");
         if (compSupported) {
             System.out.printf("\t%6s", "JIT ms");
         }
@@ -171,9 +177,16 @@ public class Main {
                 if (compSupported) {
                     compStart = comp.getTotalCompilationTime();
                 }
+                ProcCpu cpu = sigar.getProcCpu(pid);
+                long userStart = cpu.getUser();
+                long sysStart = cpu.getSys();
+
                 long start = System.nanoTime();
                 test.runTest(iterations);
                 long end = System.nanoTime();
+                cpu = sigar.getProcCpu(pid);
+                long userEnd = cpu.getUser();
+                long sysEnd = cpu.getSys();
                 long endGcCount = 0;
                 long endGcTime = 0;
                 for (GarbageCollectorMXBean gc: gcs) {
@@ -185,7 +198,7 @@ public class Main {
                     compEnd = comp.getTotalCompilationTime();
                 }
                 test.cleanup();
-                System.out.printf("%20s\t%,5d\t%,15d\t%,17d\t%,17.0f\t%,4d\t%,5d",testName,i+1, iterations, end - start,((double)iterations)/(end - start) * 1000000000.0,endGcCount-startGcCount, endGcTime-startGcTime);
+                System.out.printf("%20s\t%,5d\t%,15d\t%,17d\t%,17.0f\t%,4d\t%,5d\t%,8d\t%,8d",testName,i+1, iterations, end - start,((double)iterations)/(end - start) * 1000000000.0,endGcCount-startGcCount, endGcTime-startGcTime, userEnd-userStart,sysEnd-sysStart);
                 if (compSupported) {
                     System.out.printf("\t%,6d", compEnd-compStart);
                 }
