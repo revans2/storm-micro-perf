@@ -1,0 +1,11 @@
+#!/bin/sh
+./run.sh "$@"
+./run.sh -D Q.type=disruptor-latest "$@"
+./run.sh -D Q.type=disruptor-latest -D Q.disruptor.timeout=0 "$@"
+./run.sh -D Q.type=disruptor-latest -D Q.disruptor.timeout=0 -D Q.disruptor.lite-blocking=true "$@"
+./run.sh -D Q.type=disruptor-latest -D Q.disruptor.timeout=0 -D Q.disruptor.lite-blocking=true -D Q.batch-size=100 "$@"
+./run.sh -D Q.type=disruptor-latest -D Q.disruptor.timeout=0 -D Q.disruptor.lite-blocking=true -D Q.batch-size=250 "$@"
+./run.sh -D Q.type=disruptor-latest -D Q.disruptor.timeout=0 -D Q.disruptor.lite-blocking=true -D Q.batch-size=500 "$@"
+./run.sh -D Q.batch-size=100 "$@"
+./run.sh -D Q.batch-size=250 "$@"
+./run.sh -D Q.batch-size=500 "$@"
