@@ -63,14 +63,17 @@ public class Main {
             tests.put("Q_PIPE_"+t, new QPipeline(threads));
             tests.put("Q_WC_"+t, new QWC(1, threads));
             tests.put("Q_WC_X_"+t, new QWC(threads, threads));
-            tests.put("Q_RR_B_0001_"+t, new QRoundRobin(1, threads,1));
-            tests.put("Q_RR_B_0010_"+t, new QRoundRobin(1, threads,10));
-            tests.put("Q_RR_B_0100_"+t, new QRoundRobin(1, threads,100));
-            tests.put("Q_RR_B_1000_"+t, new QRoundRobin(1, threads,1000));
-            tests.put("Q_RR_X_B_0001_"+t, new QRoundRobin(threads, threads,1));
-            tests.put("Q_RR_X_B_0010_"+t, new QRoundRobin(threads, threads,10));
-            tests.put("Q_RR_X_B_0100_"+t, new QRoundRobin(threads, threads,100));
-            tests.put("Q_RR_X_B_1000_"+t, new QRoundRobin(threads, threads,1000));
+            tests.put("Q_SWC_X_"+t, new QStormWC(threads, threads, threads));
+            tests.put("Q_RR_"+t, new QRoundRobin(1, threads,1));
+            //tests.put("Q_RR_B_0001_"+t, new QRoundRobin(1, threads,1));
+            //tests.put("Q_RR_B_0010_"+t, new QRoundRobin(1, threads,10));
+            //tests.put("Q_RR_B_0100_"+t, new QRoundRobin(1, threads,100));
+            //tests.put("Q_RR_B_1000_"+t, new QRoundRobin(1, threads,1000));
+            tests.put("Q_RR_X_"+t, new QRoundRobin(threads, threads,1));
+            //tests.put("Q_RR_X_B_0001_"+t, new QRoundRobin(threads, threads,1));
+            //tests.put("Q_RR_X_B_0010_"+t, new QRoundRobin(threads, threads,10));
+            //tests.put("Q_RR_X_B_0100_"+t, new QRoundRobin(threads, threads,100));
+            //tests.put("Q_RR_X_B_1000_"+t, new QRoundRobin(threads, threads,1000));
             tests.put("PSUDO_Q_RR_"+t, new PsudoQRoundRobin(threads));
         }
         tests.put("R_MEM_01k", new RandomMemory(1024));

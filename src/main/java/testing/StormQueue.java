@@ -42,7 +42,11 @@ public class StormQueue implements Q {
 
     public StormQueue(String queueName, int size, long timeout) {
         _q = new backtype.storm.utils.DisruptorQueue(queueName, new MultiThreadedClaimStrategy(size),
-          new BlockingWaitStrategy(), timeout);
+          new BlockingWaitStrategy());
+        //If compiling against 0.11.0-SNAPSHOT
+        //_q = new backtype.storm.utils.DisruptorQueue(queueName, new MultiThreadedClaimStrategy(size),
+        //  new BlockingWaitStrategy(), timeout);
+
         _q.consumerStarted();
     }
     

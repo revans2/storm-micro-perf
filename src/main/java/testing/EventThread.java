@@ -45,6 +45,7 @@ public abstract class EventThread<T extends TestData> extends Thread implements 
             e.printStackTrace();
         } finally {
             _doneSignal.countDown();
+            onAllDone();
         }
     }
 
@@ -70,4 +71,8 @@ public abstract class EventThread<T extends TestData> extends Thread implements 
     }
 
     public abstract void onEvent(T event) throws Exception;
+
+    public void onAllDone() {
+        //Empty
+    }
 }
