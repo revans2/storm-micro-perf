@@ -88,6 +88,7 @@ public class Main {
         Options options = new Options();
         options.addOption("h", "help", false, "print help message");
         options.addOption("l", "latency", false, "Enable latency measurements");
+        options.addOption("e", "hdr-latency", false, "Enable HdrHistogram latency measurements");
         options.addOption("i", "iterations", true, "Number of iterations within each test");
         options.addOption("t", "times", true, "Number of times to run each test");
         options.addOption(OptionBuilder.withArgName("property=value")
@@ -110,7 +111,8 @@ public class Main {
             return;
         }
 
-        boolean trackLatency = cmd.hasOption("l");
+        boolean trackHdrLatency = cmd.hasOption("e");
+        boolean trackLatency = cmd.hasOption("l") || trackHdrLatency;
         int iterations = Integer.valueOf(cmd.getOptionValue("i", "1000000"));
         int times = Integer.valueOf(cmd.getOptionValue("t", "5"));
         Map<String, String> conf = new HashMap<String, String>();
@@ -167,7 +169,16 @@ public class Main {
         for (int i = 0; i < times; i++) {
             for (String testName: testNames) {
                 Test test = tests.get(testName);
-                LatencyEstimation latency = trackLatency? new LatencyEstimationImpl(pct, iterations) : new NoopLatencyEstimation();
+                LatencyEstimation latency;
+                if (trackLatency) {
+                    if (trackHdrLatency) {
+                        latency = new HdrLatencyEstimationImpl();
+                    } else {
+                        latency = new LatencyEstimationImpl(pct, iterations);
+                    }
+                } else {
+                    latency = new NoopLatencyEstimation();
+                }
                 test.prepare(latency, conf, iterations);
                 System.gc();
                 long startGcCount = 0;

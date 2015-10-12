@@ -12,6 +12,8 @@ public class Consumer extends EventThread<TestData> {
 
     @Override
     public void onEvent(TestData data) throws Exception {
-        _lat.recordLatency(data.iteration, data.start);
+        if (!data.allDone) {
+            _lat.recordLatency(data.iteration, data.start);
+        }
     }
 }
