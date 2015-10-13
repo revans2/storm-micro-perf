@@ -75,8 +75,8 @@ public class LatestDisruptorQ implements Q {
     
     public static LatestDisruptorQ make(String name, int size, Map<String, String> conf) {
         long timeout = Q.getLong(conf, "Q.disruptor.timeout", 1000l);
-        int batch = Q.getInt(conf, "Q.disruptor.batch", 1);
         boolean useLite = conf.containsKey("Q.disruptor.lite-blocking");
+        int batch = Q.getInt(conf, "Q.disruptor.batch", 1);
 
         return new LatestDisruptorQ(name, size, timeout, batch, useLite);
     }
@@ -96,7 +96,17 @@ public class LatestDisruptorQ implements Q {
         _buffer.addGatingSequences(_consumer);
         _waitTimeout = timeout;
     }
-    
+
+    @Override
+    public boolean isThrottled() {
+        return false;
+    }
+
+    @Override
+    public void register(BpCb cb) {
+        //Ignored
+    }
+ 
     public String getName() {
       return _queueName;
     }

@@ -16,8 +16,26 @@ public class QRoundRobin implements Test {
     private int _numSendThreads;
     private int _numRecvThreads;
     private int _batchInsert;
+    private volatile boolean throttle = false;
 
-    public static class Sender extends Thread {
+    private class CB implements BpCb {
+        public void highWaterMark() {
+            check();
+        }
+
+        public void check() {
+            boolean tmp = false;
+            for (Q q: _q) {
+                tmp = tmp || q.isThrottled();
+            }
+        }
+
+        public void lowWaterMark() {
+            check();
+        }
+    }
+
+    public class Sender extends Thread {
         private CountDownLatch _doneSignal;
         private CountDownLatch _startSignal;
         private ArrayList<Q> _q;
@@ -43,6 +61,9 @@ public class QRoundRobin implements Test {
                 int iteration = 0;
                 for (int i = 0; i < (iterations/batchInsert) + 1; i++) {
                     for (int j = 0; j < batchInsert; j++) {
+                        while (throttle) {
+                            Thread.sleep(1);
+                        }
                         long start = _lat.getStart(iteration);
                         _q.get(i % _q.size()).publish(new TestData(iteration, start, false));
                         iteration++;
@@ -73,6 +94,7 @@ public class QRoundRobin implements Test {
 
     @Override
     public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
+        CB cb = new CB();
         _doneSignal = new CountDownLatch(_numSendThreads + _numRecvThreads);
         _startSignal = new CountDownLatch(1);
         _lat = lat;
@@ -81,6 +103,7 @@ public class QRoundRobin implements Test {
 
         for (int i = 0; i < _numRecvThreads; i++) {
             Q q = Q.make("Q_"+i, conf);
+            q.register(cb);
             _q.add(q);
             Consumer c = new Consumer(_startSignal, _doneSignal, q, _lat, _numSendThreads);
             _threads.add(c);

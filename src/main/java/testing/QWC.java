@@ -27,6 +27,24 @@ public class QWC implements Test {
     private LatencyEstimation _lat;
     private int _sendThreads;
     private int _recvThreads;
+    private volatile boolean throttle = false;
+
+    private class CB implements BpCb {
+        public void highWaterMark() {
+            check();
+        }
+
+        public void check() {
+            boolean tmp = false;
+            for (Q q: _q) {
+                tmp = tmp || q.isThrottled();
+            }
+        }
+
+        public void lowWaterMark() {
+            check();
+        }
+    }
 
     public QWC(int sendThreads, int recvThreads) {
         _sendThreads = sendThreads;
@@ -38,7 +56,7 @@ public class QWC implements Test {
         return "Word Count one event at a time from "+_sendThreads+" to "+_recvThreads+" threads";
     }
 
-    public static class Sender extends Thread {
+    public class Sender extends Thread {
         private CountDownLatch _doneSignal;
         private CountDownLatch _startSignal;
         private ArrayList<Q> _q;
@@ -60,6 +78,9 @@ public class QWC implements Test {
                 final int iterations = _iterations;
                 _startSignal.await();
                 for (int i = 0; i < iterations; i++) {
+                    while (throttle) {
+                        Thread.sleep(1);
+                    }
                     long start = _lat.getStart(i);
                     String [] words = gen.getNext().split(" ");
                     for (int j = 0; j < words.length; j++) {
@@ -108,6 +129,7 @@ public class QWC implements Test {
 
     @Override
     public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
+        CB cb = new CB();
         _counts = new ArrayList<HashMap<String, Integer>>();
         _doneSignal = new CountDownLatch(_recvThreads + _sendThreads);
         _startSignal = new CountDownLatch(1);
@@ -119,6 +141,7 @@ public class QWC implements Test {
             HashMap<String, Integer> subCounts = new HashMap<String,Integer>();
             _counts.add(subCounts);
             Q q = Q.make("Q_"+i, conf);
+            q.register(cb);
             _q.add(q);
             Counter c = new Counter(_startSignal, _doneSignal, q, subCounts, _lat, _sendThreads);
             _threads.add(c);

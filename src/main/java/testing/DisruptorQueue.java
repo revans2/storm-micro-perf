@@ -89,7 +89,17 @@ public class DisruptorQueue implements Q {
         _buffer.setGatingSequences(_consumer);
         _waitTimeout = timeout;
     }
-    
+
+    @Override
+    public void register(BpCb cb) {
+        //Ignored
+    }
+ 
+    @Override
+    public boolean isThrottled() {
+        return false;
+    }
+
     public String getName() {
       return _queueName;
     }

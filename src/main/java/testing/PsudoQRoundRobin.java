@@ -14,6 +14,24 @@ public class PsudoQRoundRobin implements Test {
     private ArrayList<Q> _q;
     private LatencyEstimation _lat;
     private int _numThreads;
+    private volatile boolean throttle = false;
+
+    private class CB implements BpCb {
+        public void highWaterMark() {
+            check();
+        }
+
+        public void check() {
+            boolean tmp = false;
+            for (Q q: _q) {
+                tmp = tmp || q.isThrottled();
+            }
+        }
+
+        public void lowWaterMark() {
+            check();
+        }
+    }
 
     public PsudoQRoundRobin(int threads) {
         _numThreads = threads;
@@ -26,6 +44,7 @@ public class PsudoQRoundRobin implements Test {
 
     @Override
     public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
+        CB cb = new CB();
         _doneSignal = new CountDownLatch(_numThreads);
         _startSignal = new CountDownLatch(1);
         _lat = lat;
@@ -35,6 +54,7 @@ public class PsudoQRoundRobin implements Test {
         //This is where we know the number of iterations so allocate the buffers here first
         for (int i = 0; i < _numThreads; i++) {
             Q q = Q.make("Q_"+i, conf, iterations);
+            q.register(cb);
             _q.add(q);
             Consumer c = new Consumer(_startSignal, _doneSignal, q, _lat, 1);
             _threads.add(c);
@@ -45,6 +65,9 @@ public class PsudoQRoundRobin implements Test {
     @Override
     public void runTest(int iterations) throws Exception {
         for (int i = 0; i < iterations; i++) {
+            while (throttle) {
+                Thread.sleep(1);
+            }
             long start = _lat.getStart(i);
             _q.get(i % _q.size()).publish(new TestData(i, start, false));
         }

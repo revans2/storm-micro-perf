@@ -49,7 +49,17 @@ public class InputBatchingQ implements Q {
             }
         }, 1, 1);
     }
-    
+
+    @Override
+    public void register(BpCb cb) {
+        //Ignored
+    }
+ 
+    @Override
+    public boolean isThrottled() {
+        return false;
+    }
+
     @Override
     public String getName() {
       return "BATCH_"+_batchSize+"_"+_q.getName();

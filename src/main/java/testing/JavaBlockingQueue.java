@@ -35,7 +35,17 @@ public class JavaBlockingQueue implements Q {
         _q = q;
         _name = "JAVA_ARRAY_"+queueName;
     }
-    
+
+    @Override
+    public void register(BpCb cb) {
+        //Ignored
+    }
+
+    @Override
+    public boolean isThrottled() {
+        return false;
+    }
+
     @Override
     public String getName() {
       return _name;

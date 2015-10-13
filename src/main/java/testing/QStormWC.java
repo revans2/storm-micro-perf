@@ -29,6 +29,27 @@ public class QStormWC implements Test {
     private int _sendThreads;
     private int _splitThreads;
     private int _countThreads;
+    private volatile boolean throttle = false;
+
+    private class CB implements BpCb {
+        public void highWaterMark() {
+            check();
+        }
+
+        public void check() {
+            boolean tmp = false;
+            for (Q q: _toSplit) {
+                tmp = tmp || q.isThrottled();
+            }
+            for (Q q: _toCount) {
+                tmp = tmp || q.isThrottled();
+            }
+        }
+
+        public void lowWaterMark() {
+            check();
+        }
+    }
 
     public QStormWC(int sendThreads, int splitThreads, int countThreads) {
         _sendThreads = sendThreads;
@@ -41,7 +62,7 @@ public class QStormWC implements Test {
         return "Word Count one event at a time from "+_sendThreads+" to split:"+_splitThreads+" and count:"+_countThreads+" threads";
     }
 
-    public static class Sender extends Thread {
+    public class Sender extends Thread {
         private CountDownLatch _doneSignal;
         private CountDownLatch _startSignal;
         private ArrayList<Q> _q;
@@ -63,6 +84,9 @@ public class QStormWC implements Test {
                 final int iterations = _iterations;
                 _startSignal.await();
                 for (int i = 0; i < iterations; i++) {
+                    while (throttle) {
+                        Thread.sleep(1);
+                    }
                     long start = _lat.getStart(i);
                     _q.get(i % _q.size()).publish(new WCMessage(i, start, gen.getNext(), true, false));
                 }
@@ -134,6 +158,7 @@ public class QStormWC implements Test {
 
     @Override
     public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
+        CB cb = new CB();
         _counts = new ArrayList<HashMap<String, Integer>>();
         _doneSignal = new CountDownLatch(_countThreads + _sendThreads + _splitThreads);
         _startSignal = new CountDownLatch(1);
@@ -146,6 +171,7 @@ public class QStormWC implements Test {
             HashMap<String, Integer> subCounts = new HashMap<String,Integer>();
             _counts.add(subCounts);
             Q q = Q.make("Q_COUNT_"+i, conf);
+            q.register(cb);
             _toCount.add(q);
             Counter c = new Counter(_startSignal, _doneSignal, q, subCounts, _lat, _splitThreads);
             _threads.add(c);
@@ -154,6 +180,7 @@ public class QStormWC implements Test {
 
         for (int i = 0; i < _splitThreads; i++) {
             Q q = Q.make("Q_SPLIT_"+i, conf);
+            q.register(cb);
             _toSplit.add(q);
             Splitter s = new Splitter(_startSignal, _doneSignal, q, _toCount, _sendThreads);
             _threads.add(s);

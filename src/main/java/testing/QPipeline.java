@@ -14,6 +14,7 @@ public class QPipeline implements Test {
     private ArrayList<Q> _q;
     private LatencyEstimation _lat;
     private int _depth;
+    private volatile boolean throttle = false;
 
     public QPipeline(int depth) {
         _depth = depth;
@@ -24,8 +25,26 @@ public class QPipeline implements Test {
         return "Sends events through a pipeline "+_depth+" deep.";
     }
 
+    private class CB implements BpCb {
+        public void highWaterMark() {
+            check();
+        }
+
+        public void check() {
+            boolean tmp = false;
+            for (Q q: _q) {
+                tmp = tmp || q.isThrottled();
+            }
+        }
+
+        public void lowWaterMark() {
+            check();
+        }
+    }
+
     @Override
     public void prepare(LatencyEstimation lat, Map<String, String> conf, int iterations) {
+        CB cb = new CB();
         _doneSignal = new CountDownLatch(_depth);
         _startSignal = new CountDownLatch(1);
         _lat = lat;
@@ -37,6 +56,7 @@ public class QPipeline implements Test {
             Q current = null;
             if (i != _depth) {
                 current = Q.make("Q_"+i, conf);
+                current.register(cb);
                 _q.add(current);
             }
             if (i == _depth) {
@@ -58,6 +78,9 @@ public class QPipeline implements Test {
         Q q = _q.get(0);
         LatencyEstimation lat = _lat;
         for (int i = 1; i <= iterations; i++) {
+            while (throttle) {
+                Thread.sleep(1);
+            }
             long start = lat.getStart(i);
             q.publish(new TestData(i, start, false));
         }

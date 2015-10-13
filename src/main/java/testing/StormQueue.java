@@ -49,7 +49,17 @@ public class StormQueue implements Q {
 
         _q.consumerStarted();
     }
-    
+
+    @Override
+    public void register(BpCb cb) {
+        //Ignored
+    }
+
+    @Override
+    public boolean isThrottled() {
+        return false;
+    }
+
     @Override
     public String getName() {
       return _q.getName();

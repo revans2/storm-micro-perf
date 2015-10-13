@@ -34,6 +34,8 @@ public interface Q {
     public void publish(Collection<Object> obj);
     public void tryPublish(Object obj) throws InsufficientCapacityException;
     public void close();
+    public void register(BpCb cb);
+    public boolean isThrottled();
 
     public static int getInt(Map<String, String> conf, String name, int defaultValue) {
         String tmp = conf.get(name);
@@ -71,6 +73,7 @@ public interface Q {
         String type = conf.get("Q.type");
         int batchSize = getInt(conf, "Q.batch-size", 1);
         batchSize = Math.min(batchSize, size);
+        boolean externalBatch = batchSize > 1;
 
         Q ret = null;
         if ("storm".equalsIgnoreCase(type)) {
@@ -81,13 +84,16 @@ public interface Q {
             ret = JavaLinkedBlockingQueue.make(name, size, conf);
         } else if ("disruptor-latest".equalsIgnoreCase(type)) {
             ret = LatestDisruptorQ.make(name, size, conf);
+        } else if ("nb-disruptor-latest".equalsIgnoreCase(type)) {
+            ret = NBLatestDisruptorQ.make(name, size, batchSize, conf);
+            externalBatch = false;
         } else if (type == null || "disruptor".equalsIgnoreCase(type)) {
             ret = DisruptorQueue.make(name, size, conf);
         } else {
-            throw new IllegalArgumentException(type+" is not a supported Q type. [\"storm\", \"disruptor\", \"disruptor-latest\", \"java-array\", \"java-linked\"]");
+            throw new IllegalArgumentException(type+" is not a supported Q type. [\"storm\", \"disruptor\", \"disruptor-latest\", \"java-array\", \"java-linked\", \"nb-disruptor-latest\"]");
         }
 
-        if (batchSize > 1) {
+        if (externalBatch) {
             ret = new InputBatchingQ(ret, batchSize);
         }
 
