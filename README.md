@@ -11,5 +11,5 @@ cd shaded-disruptor && mvn clean install
 Finally you can build and run the help command to see the tests
 ```
 mvn clean package
-java -cp ./target/storm-micro-perf-1.0.0.jar:./target/dependency/\* testing.Main -h
+./run.sh -h
 ```
